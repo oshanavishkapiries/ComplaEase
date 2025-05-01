@@ -1,8 +1,9 @@
 
-import { createContext, useContext, useState, ReactNode } from "react";
-import { currentUser } from "@/lib/data";
-import { useToast } from "@/hooks/use-toast";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { User } from "@/lib/data";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Session } from "@supabase/supabase-js";
 
 type AuthContextType = {
   user: User | null;
@@ -10,43 +11,73 @@ type AuthContextType = {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (name: string, email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const { toast } = useToast();
 
-  // Simulate initial auth check
-  useState(() => {
-    // In a real app, we would check for an auth token or session
-    setTimeout(() => {
+  useEffect(() => {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        if (session?.user) {
+          setUser({
+            id: session.user.id,
+            name: session.user.user_metadata.name || "User",
+            email: session.user.email || "",
+            avatar: session.user.user_metadata.avatar_url || "",
+            role: session.user.user_metadata.role || "student"
+          });
+        } else {
+          setUser(null);
+        }
+        setIsLoading(false);
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          name: session.user.user_metadata.name || "User",
+          email: session.user.email || "",
+          avatar: session.user.user_metadata.avatar_url || "",
+          role: session.user.user_metadata.role || "student"
+        });
+      }
       setIsLoading(false);
-    }, 1000);
-  });
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
       
-      if (email === "john.doe@example.com" && password === "password") {
-        setUser(currentUser);
-        toast({
-          title: "Success",
-          description: "Logged in successfully",
-        });
-      } else {
-        throw new Error("Invalid credentials");
-      }
-    } catch (error) {
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Logged in successfully",
+      });
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Invalid email or password",
+        description: error.message || "Failed to login",
         variant: "destructive",
       });
       throw error;
@@ -58,25 +89,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const register = async (name: string, email: string, password: string) => {
     setIsLoading(true);
     try {
-      // Simulating API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // In a real app, we would send registration data to the server
-      // and handle the response
-      setUser({
-        ...currentUser,
-        name,
+      const { error } = await supabase.auth.signUp({
         email,
+        password,
+        options: {
+          data: {
+            name,
+            role: "student"
+          }
+        }
       });
+      
+      if (error) throw error;
       
       toast({
         title: "Success",
-        description: "Account created successfully",
+        description: "Account created successfully. Please check your email for verification.",
       });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to create account",
+        description: error.message || "Failed to create account",
         variant: "destructive",
       });
       throw error;
@@ -85,13 +118,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const logout = () => {
-    setUser(null);
-    // In a real app, we would invalidate the token/session
-    toast({
-      title: "Success",
-      description: "Logged out successfully",
-    });
+  const logout = async () => {
+    try {
+      await supabase.auth.signOut();
+      setUser(null);
+      toast({
+        title: "Success",
+        description: "Logged out successfully",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to logout",
+        variant: "destructive",
+      });
+    }
   };
 
   const value = {
