@@ -1,0 +1,13 @@
+<component name="ArtifactManager">
+  <artifact type="exploded-war" name="ComplaEase:war exploded">
+    <output-path>$PROJECT_DIR$/out/artifacts/ComplaEase_war_exploded</output-path>
+    <root id="root">
+      <element id="directory" name="WEB-INF">
+        <element id="directory" name="classes">
+          <element id="module-output" name="ComplaEase" />
+        </element>
+      </element>
+      <element id="javaee-facet-resources" facet="ComplaEase/web/Web" />
+    </root>
+  </artifact>
+</component>
