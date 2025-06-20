@@ -203,8 +203,8 @@
             border-left: 4px solid #dc3545;
         }
 
-        /* Update Form Section */
-        .update-form-section {
+        /* Form and Table Sections */
+        .section {
             background: white;
             padding: 30px;
             border-radius: 15px;
@@ -223,23 +223,6 @@
 
         .section-title i {
             margin-right: 10px;
-            color: #4CAF50;
-        }
-
-        .complaint-details {
-            background: #f8f9fa;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            border-left: 4px solid #4CAF50;
-        }
-
-        .complaint-details p {
-            margin-bottom: 10px;
-            color: #333;
-        }
-
-        .complaint-details strong {
             color: #4CAF50;
         }
 
@@ -271,15 +254,6 @@
             box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
         }
 
-        .form-control::placeholder {
-            color: #999;
-        }
-
-        textarea.form-control {
-            resize: vertical;
-            min-height: 100px;
-        }
-
         .form-select {
             width: 100%;
             padding: 12px 15px;
@@ -290,18 +264,6 @@
             background: white;
             appearance: none;
             cursor: pointer;
-        }
-
-        .form-select:focus {
-            outline: none;
-            border-color: #4CAF50;
-            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
-        }
-
-        .form-buttons {
-            display: flex;
-            gap: 15px;
-            align-items: center;
         }
 
         .btn {
@@ -315,6 +277,7 @@
             text-decoration: none;
             display: inline-flex;
             align-items: center;
+            margin-right: 10px;
         }
 
         .btn i {
@@ -337,31 +300,27 @@
             color: white;
         }
 
-        .btn-secondary:hover {
-            background: #5a6268;
-            transform: translateY(-2px);
-        }
-
         .btn-danger {
             background: #dc3545;
             color: white;
         }
 
-        .btn-danger:hover {
-            background: #c82333;
-            transform: translateY(-2px);
+        .status-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
         }
 
-        /* Table Section */
-        .table-section {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        .status-pending {
+            background: #fff3cd;
+            color: #856404;
         }
 
-        .table-container {
-            overflow-x: auto;
+        .status-resolved {
+            background: #d4edda;
+            color: #155724;
         }
 
         table {
@@ -387,24 +346,6 @@
             color: #666;
         }
 
-        .status-badge {
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-pending {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-resolved {
-            background: #d4edda;
-            color: #155724;
-        }
-
         .actions {
             display: flex;
             gap: 10px;
@@ -422,32 +363,10 @@
             color: #45a049;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #666;
-        }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #ddd;
-            margin-bottom: 20px;
-        }
-
-        .empty-state h3 {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-            color: #333;
-        }
-
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
                 transition: transform 0.3s ease;
-            }
-
-            .sidebar.open {
-                transform: translateX(0);
             }
 
             .main-content {
@@ -457,15 +376,6 @@
 
             .stats-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .form-buttons {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-                justify-content: center;
             }
         }
     </style>
@@ -501,18 +411,6 @@
                     <a href="#" class="nav-link">
                         <i class="fas fa-users"></i>
                         Users
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-chart-bar"></i>
-                        Analytics
-                    </a>
-                </div>
-                <div class="nav-item">
-                    <a href="#" class="nav-link">
-                        <i class="fas fa-cog"></i>
-                        Settings
                     </a>
                 </div>
                 <div class="nav-item">
@@ -559,15 +457,6 @@
                     </div>
                     <div class="stat-label">Resolved</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-icon">
-                        <i class="fas fa-users"></i>
-                    </div>
-                    <div class="stat-number">
-                        <%= complaints != null ? complaints.stream().map(c -> c.getUserId()).distinct().count() : 0 %>
-                    </div>
-                    <div class="stat-label">Active Users</div>
-                </div>
             </div>
 
             <!-- Message Alerts -->
@@ -591,7 +480,7 @@
             <%
                 if (updateComplaint != null) {
             %>
-                <div class="update-form-section">
+                <div class="section">
                     <h2 class="section-title">
                         <i class="fas fa-edit"></i>
                         Update Complaint Status & Remarks
@@ -600,18 +489,6 @@
                     <form id="adminUpdateForm" action="<%= request.getContextPath() %>/admin" method="post" onsubmit="return validateAdminUpdateForm()">
                         <input type="hidden" name="action" value="update"/>
                         <input type="hidden" name="id" value="<%= updateComplaint.getId() %>"/>
-
-                        <div class="complaint-details">
-                            <p><strong>Complaint ID:</strong> <%= updateComplaint.getId() %></p>
-                            <p><strong>User ID:</strong> <%= updateComplaint.getUserId() %></p>
-                            <p><strong>Title:</strong> <%= updateComplaint.getTitle() %></p>
-                            <p><strong>Description:</strong> <%= updateComplaint.getDescription() %></p>
-                            <p><strong>Current Status:</strong>
-                                <span class="status-badge <%= "PENDING".equalsIgnoreCase(updateComplaint.getStatus()) ? "status-pending" : "status-resolved" %>">
-                                    <%= updateComplaint.getStatus() %>
-                                </span>
-                            </p>
-                        </div>
 
                         <div class="form-group">
                             <label for="status">Update Status</label>
@@ -632,14 +509,12 @@
                                       placeholder="Add your remarks here..." rows="4"><%= updateComplaint.getRemarks() != null ? updateComplaint.getRemarks() : "" %></textarea>
                         </div>
 
-                        <div class="form-buttons">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-save"></i> Update Complaint
-                            </button>
-                            <a href="<%= request.getContextPath() %>/complaint" class="btn btn-secondary">
-                                <i class="fas fa-times"></i> Cancel
-                            </a>
-                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Update Complaint
+                        </button>
+                        <a href="<%= request.getContextPath() %>/complaint" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
                     </form>
                 </div>
             <%
@@ -647,79 +522,77 @@
             %>
 
             <!-- Complaints Table -->
-            <div class="table-section">
+            <div class="section">
                 <h2 class="section-title">
                     <i class="fas fa-list"></i>
                     All System Complaints
                 </h2>
 
-                <div class="table-container">
-                    <%
-                        if (complaints != null && !complaints.isEmpty()) {
-                    %>
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>User ID</th>
-                                    <th>Title</th>
-                                    <th>Description</th>
-                                    <th>Status</th>
-                                    <th>Remarks</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <%
-                                    for (ComplaintDTO c : complaints) {
-                                        String statusClass = "";
-                                        if ("PENDING".equalsIgnoreCase(c.getStatus())) {
-                                            statusClass = "status-pending";
-                                        } else if ("RESOLVED".equalsIgnoreCase(c.getStatus())) {
-                                            statusClass = "status-resolved";
-                                        }
-                                %>
-                                    <tr>
-                                        <td><%= c.getId() %></td>
-                                        <td><%= c.getUserId() %></td>
-                                        <td><%= c.getTitle() %></td>
-                                        <td><%= c.getDescription().length() > 50 ? c.getDescription().substring(0, 50) + "..." : c.getDescription() %></td>
-                                        <td>
-                                            <span class="status-badge <%= statusClass %>"><%= c.getStatus() %></span>
-                                        </td>
-                                        <td><%= c.getRemarks() != null ? (c.getRemarks().length() > 30 ? c.getRemarks().substring(0, 30) + "..." : c.getRemarks()) : "-" %></td>
-                                        <td class="actions">
-                                            <a class="action-link" href="<%= request.getContextPath() %>/complaint?updateId=<%= c.getId() %>">
-                                                <i class="fas fa-edit"></i> Update
-                                            </a>
-                                            <form action="<%= request.getContextPath() %>/complaintAction" method="post"
-                                                  onsubmit="return confirm('Are you sure you want to delete this complaint?');"
-                                                  style="display:inline;">
-                                                <input type="hidden" name="action" value="delete"/>
-                                                <input type="hidden" name="id" value="<%= c.getId() %>"/>
-                                                <button type="submit" class="btn btn-danger">
-                                                    <i class="fas fa-trash"></i> Delete
-                                                </button>
-                                            </form>
-                                        </td>
-                                    </tr>
-                                <%
+                <%
+                    if (complaints != null && !complaints.isEmpty()) {
+                %>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>User ID</th>
+                                <th>Title</th>
+                                <th>Description</th>
+                                <th>Status</th>
+                                <th>Remarks</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <%
+                                for (ComplaintDTO c : complaints) {
+                                    String statusClass = "";
+                                    if ("PENDING".equalsIgnoreCase(c.getStatus())) {
+                                        statusClass = "status-pending";
+                                    } else if ("RESOLVED".equalsIgnoreCase(c.getStatus())) {
+                                        statusClass = "status-resolved";
                                     }
-                                %>
-                            </tbody>
-                        </table>
-                    <%
-                        } else {
-                    %>
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <h3>No Complaints Found</h3>
-                            <p>There are no complaints in the system yet.</p>
-                        </div>
-                    <%
-                        }
-                    %>
-                </div>
+                            %>
+                                <tr>
+                                    <td><%= c.getId() %></td>
+                                    <td><%= c.getUserId() %></td>
+                                    <td><%= c.getTitle() %></td>
+                                    <td><%= c.getDescription().length() > 50 ? c.getDescription().substring(0, 50) + "..." : c.getDescription() %></td>
+                                    <td>
+                                        <span class="status-badge <%= statusClass %>"><%= c.getStatus() %></span>
+                                    </td>
+                                    <td><%= c.getRemarks() != null ? (c.getRemarks().length() > 30 ? c.getRemarks().substring(0, 30) + "..." : c.getRemarks()) : "-" %></td>
+                                    <td class="actions">
+                                        <a class="action-link" href="<%= request.getContextPath() %>/complaint?updateId=<%= c.getId() %>">
+                                            <i class="fas fa-edit"></i> Update
+                                        </a>
+                                        <form action="<%= request.getContextPath() %>/complaintAction" method="post"
+                                              onsubmit="return confirm('Are you sure you want to delete this complaint?');"
+                                              style="display:inline;">
+                                            <input type="hidden" name="action" value="delete"/>
+                                            <input type="hidden" name="id" value="<%= c.getId() %>"/>
+                                            <button type="submit" class="btn btn-danger">
+                                                <i class="fas fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            <%
+                                }
+                            %>
+                        </tbody>
+                    </table>
+                <%
+                    } else {
+                %>
+                    <div style="text-align: center; padding: 60px 20px; color: #666;">
+                        <i class="fas fa-inbox" style="font-size: 4rem; color: #ddd; margin-bottom: 20px;"></i>
+                        <h3 style="font-size: 1.5rem; margin-bottom: 10px; color: #333;">No Complaints Found</h3>
+                        <p>There are no complaints in the system yet.</p>
+                    </div>
+                <%
+                    }
+                %>
             </div>
         </div>
     </div>
